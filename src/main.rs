@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::exit;
+use std::process::{Command, exit};
 use std::{env, fs};
 
 fn main() {
@@ -21,7 +21,7 @@ fn main() {
 
 fn get_input() -> String {
     let mut input: String = String::new();
-    print!("$ ");
+    print!("$: ");
     io::stdout().flush().unwrap();
     io::stdin()
         .read_line(&mut input)
@@ -75,7 +75,9 @@ fn process_input(input: &str, executables: &HashMap<String, PathBuf>) {
         // Executables
         _ => {
             if let Some(path) = executables.get(command) {
-                println!("{command} is a valid command: {}", path.display())
+                if let Err(e) = Command::new(path).args(args).status() {
+                    eprintln!("{}: {}", command, e);
+                }
             } else {
                 println!("{command}: command not found.")
             }
