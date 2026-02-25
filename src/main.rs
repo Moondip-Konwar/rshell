@@ -1,8 +1,6 @@
-use std::collections::HashMap;
+use std::env;
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
 use std::process::{Command, exit};
-use std::{env, fs};
 
 fn main() {
     loop {
