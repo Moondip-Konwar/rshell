@@ -23,23 +23,6 @@ fn get_input() -> String {
     input
 }
 
-fn get_files_in(path: &Path) -> HashMap<String, PathBuf> {
-    let mut files: HashMap<String, PathBuf> = HashMap::new();
-    let Ok(entries) = fs::read_dir(path) else {
-        return files;
-    };
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_file() {
-            let name = entry.file_name();
-            files.insert(name.into_string().unwrap(), path);
-        }
-    }
-
-    files
-}
-
 fn process_input(input: &str) {
     if input.is_empty() {
         return;
