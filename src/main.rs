@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io::Result;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::exit;
@@ -7,9 +6,16 @@ use std::{env, fs};
 
 fn main() {
     let path = env::var("PATH").expect("Failed to read path.");
+    let path_dirs = path.split(':');
+    let mut executables: HashMap<String, PathBuf> = HashMap::new();
+    for dir in path_dirs {
+        let dir_path = Path::new(dir);
+        let files = get_files_in(dir_path);
+        executables.extend(files);
+    }
     loop {
         let input = get_input();
-        process_input(&input, &path);
+        process_input(&input, &executables);
     }
 }
 
@@ -25,41 +31,43 @@ fn get_input() -> String {
     input
 }
 
-fn get_files_in(path: &Path) -> Result<Vec<PathBuf>> {
-    let mut files: Vec<PathBuf> = Vec::new();
-    for entry in fs::read_dir(path)? {
-        let entry = entry?;
+fn get_files_in(path: &Path) -> HashMap<String, PathBuf> {
+    let mut files: HashMap<String, PathBuf> = HashMap::new();
+    let Ok(entries) = fs::read_dir(path) else {
+        return files;
+    };
+
+    for entry in entries.flatten() {
         let path = entry.path();
         if path.is_file() {
-            files.push(path);
+            let name = entry.file_name();
+            files.insert(name.into_string().unwrap(), path);
         }
     }
 
-    Ok(files)
+    files
 }
 
-fn process_input(input: &String, path: &String) {
+fn process_input(input: &str, executables: &HashMap<String, PathBuf>) {
     if input.is_empty() {
         return;
     }
 
-    let path_dirs = path.split(':');
-    let mut executables: HashMap<PathBuf, Vec<PathBuf>> = HashMap::new();
-    for dir in path_dirs {
-        let dir_path = Path::new(dir);
-        let files = get_files_in(dir_path).unwrap();
-        executables.insert(PathBuf::from(dir_path), files);
-    }
+    let mut args = input.split_whitespace();
+    let Some(command) = args.next() else { return };
 
-    match input.as_str() {
+    match command {
         // Builtins
         "exit" => exit(0),
         "cd" => println!("Not implemented yet."),
-        "path" => println!("{}", path),
 
-        // Invalid
+        // Executables
         _ => {
-            println!("{}: Command not found.", input)
+            if let Some(path) = executables.get(command) {
+                println!("{command} is a valid command: {}", path.display())
+            } else {
+                println!("{command}: command not found.")
+            }
         }
     }
 }
