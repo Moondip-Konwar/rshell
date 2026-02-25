@@ -59,7 +59,18 @@ fn process_input(input: &str, executables: &HashMap<String, PathBuf>) {
     match command {
         // Builtins
         "exit" => exit(0),
-        "cd" => println!("Not implemented yet."),
+        "cd" => {
+            if let Some(dir) = args.next() {
+                let _ = env::set_current_dir(dir);
+            }
+        }
+        "pwd" => {
+            if let Ok(current_dir) = env::current_dir() {
+                println!("{}", current_dir.display());
+            } else {
+                println!("Failed to get current dir.")
+            }
+        }
 
         // Executables
         _ => {
