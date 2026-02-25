@@ -1,8 +1,9 @@
 use std::env;
-use std::io::{self, Write};
+use std::io::{self};
 use std::process::{Command, exit};
 
 mod logging;
+mod tests;
 
 fn main() {
     loop {
@@ -29,19 +30,81 @@ fn get_input() -> String {
     input
 }
 
+fn parse_input(input: &str) -> (String, Vec<String>) {
+    let mut command = String::new();
+    let mut args: Vec<String> = Vec::new();
+    let mut i = 0;
+    let chars: Vec<char> = input.chars().collect();
+
+    // Skip leading space
+    while i < chars.len() && chars[i] == ' ' {
+        i += 1;
+    }
+
+    // Parse command
+    while i < chars.len() && chars[i] != ' ' {
+        command += chars[i].to_string().as_str();
+        i += 1;
+    }
+
+    // Parse args
+    while i < chars.len() {
+        if chars[i] == ' ' {
+            i += 1;
+            continue;
+        }
+        let mut arg = String::new();
+
+        // Parse double quotes string
+        if chars[i] == '"' {
+            i += 1; // Skip the starting "
+            while i < chars.len() && chars[i] != '"' {
+                arg += chars[i].to_string().as_str();
+                i += 1;
+            }
+
+            i += 1; // Skip the ending "
+            args.push(arg);
+            continue; // Go back to loop start
+        }
+
+        // Parse double quotes string
+        if chars[i] == '\'' {
+            i += 1; // Skip the starting '
+            while i < chars.len() && chars[i] != '\'' {
+                arg += chars[i].to_string().as_str();
+                i += 1;
+            }
+
+            i += 1; // Skip the ending '
+            args.push(arg);
+            continue; // Go back to loop start
+        }
+
+        // Parse flag
+        while i < chars.len() && chars[i] != ' ' {
+            arg += chars[i].to_string().as_str();
+            i += 1;
+        }
+        args.push(arg);
+        continue;
+    }
+
+    (command, args)
+}
 fn process_input(input: &str) {
     if input.is_empty() {
         return;
     }
 
-    let mut args = input.split_whitespace();
-    let Some(command) = args.next() else { return };
+    let (cmd, args) = parse_input(input);
+    let command = cmd.as_str();
 
     match command {
         // Builtins
         "exit" => exit(0),
         "cd" => {
-            if let Some(dir) = args.next() {
+            if let Some(dir) = args.first() {
                 let _ = env::set_current_dir(dir);
             }
         }
