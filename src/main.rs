@@ -2,6 +2,8 @@ use std::env;
 use std::io::{self, Write};
 use std::process::{Command, exit};
 
+mod logging;
+
 fn main() {
     loop {
         let input = get_input();
@@ -11,8 +13,14 @@ fn main() {
 
 fn get_input() -> String {
     let mut input: String = String::new();
-    print!("$: ");
-    io::stdout().flush().unwrap();
+    if let Ok(current_dir) = env::current_dir()
+        && let Some(path) = current_dir.to_str()
+    {
+        let display_str = path.to_owned() + "❯ ";
+        logging::input(&display_str);
+    } else {
+        logging::input("$: ");
+    }
     io::stdin()
         .read_line(&mut input)
         .expect("Failed to read line.");
@@ -48,7 +56,7 @@ fn process_input(input: &str) {
         // Executables
         _ => {
             if let Err(e) = Command::new(command).args(args).status() {
-                eprintln!("{}: {}", command, e);
+                logging::error(format!("{command}: {e}").as_str());
             }
         }
     }
