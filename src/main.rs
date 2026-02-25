@@ -5,17 +5,9 @@ use std::process::{Command, exit};
 use std::{env, fs};
 
 fn main() {
-    let path = env::var("PATH").expect("Failed to read path.");
-    let path_dirs = path.split(':');
-    let mut executables: HashMap<String, PathBuf> = HashMap::new();
-    for dir in path_dirs {
-        let dir_path = Path::new(dir);
-        let files = get_files_in(dir_path);
-        executables.extend(files);
-    }
     loop {
         let input = get_input();
-        process_input(&input, &executables);
+        process_input(&input);
     }
 }
 
@@ -48,7 +40,7 @@ fn get_files_in(path: &Path) -> HashMap<String, PathBuf> {
     files
 }
 
-fn process_input(input: &str, executables: &HashMap<String, PathBuf>) {
+fn process_input(input: &str) {
     if input.is_empty() {
         return;
     }
@@ -74,12 +66,8 @@ fn process_input(input: &str, executables: &HashMap<String, PathBuf>) {
 
         // Executables
         _ => {
-            if let Some(path) = executables.get(command) {
-                if let Err(e) = Command::new(path).args(args).status() {
-                    eprintln!("{}: {}", command, e);
-                }
-            } else {
-                println!("{command}: command not found.")
+            if let Err(e) = Command::new(command).args(args).status() {
+                eprintln!("{}: {}", command, e);
             }
         }
     }
