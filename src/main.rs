@@ -30,38 +30,37 @@ fn get_input() -> String {
     input
 }
 
-fn parse_input(input: &str) -> (String, Vec<String>) {
-    let mut command = String::new();
-    let mut args: Vec<String> = Vec::new();
-    let mut i = 0;
-    let chars: Vec<char> = input.chars().collect();
-
-    // Skip leading space
-    while i < chars.len() && chars[i] == ' ' {
+fn push_till(chars: &[char], from: usize, till: char) -> (String, usize) {
+    let mut i: usize = from;
+    let mut substr = String::new();
+    while i < chars.len() && chars[i] != till {
+        substr += chars[i].to_string().as_str();
         i += 1;
     }
+
+    (substr, i)
+}
+
+fn parse_input(input: &str) -> (String, Vec<String>) {
+    let mut args: Vec<String> = Vec::new();
+    let chars: Vec<char> = input.trim_start().chars().collect();
 
     // Parse command
-    while i < chars.len() && chars[i] != ' ' {
-        command += chars[i].to_string().as_str();
-        i += 1;
-    }
+    let (command, mut i) = push_till(&chars, 0, ' ');
 
     // Parse args
     while i < chars.len() {
+        // Skip whitespaces
         if chars[i] == ' ' {
             i += 1;
             continue;
         }
-        let mut arg = String::new();
+        let arg: String;
 
         // Parse double quotes string
         if chars[i] == '"' {
             i += 1; // Skip the starting "
-            while i < chars.len() && chars[i] != '"' {
-                arg += chars[i].to_string().as_str();
-                i += 1;
-            }
+            (arg, i) = push_till(&chars, i, '"');
 
             i += 1; // Skip the ending "
             args.push(arg);
@@ -71,10 +70,7 @@ fn parse_input(input: &str) -> (String, Vec<String>) {
         // Parse double quotes string
         if chars[i] == '\'' {
             i += 1; // Skip the starting '
-            while i < chars.len() && chars[i] != '\'' {
-                arg += chars[i].to_string().as_str();
-                i += 1;
-            }
+            (arg, i) = push_till(&chars, i, '\'');
 
             i += 1; // Skip the ending '
             args.push(arg);
@@ -82,10 +78,7 @@ fn parse_input(input: &str) -> (String, Vec<String>) {
         }
 
         // Parse flag
-        while i < chars.len() && chars[i] != ' ' {
-            arg += chars[i].to_string().as_str();
-            i += 1;
-        }
+        (arg, i) = push_till(&chars, i, ' ');
         args.push(arg);
         continue;
     }
