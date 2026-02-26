@@ -50,37 +50,42 @@ fn parse_input(input: &str) -> (String, Vec<String>) {
 
     // Parse args
     while i < chars.len() {
-        // Skip whitespaces
-        if chars[i] == ' ' {
-            i += 1;
-            continue;
-        }
         let arg: String;
 
-        // Parse double quotes string
-        if chars[i] == '"' {
-            i += 1; // Skip the starting "
-            (arg, i) = push_till(&chars, i, '"');
+        match chars[i] {
+            // Skip whitespace
+            ' ' => {
+                i += 1;
+                continue;
+            }
 
-            i += 1; // Skip the ending "
-            args.push(arg);
-            continue; // Go back to loop start
+            // Parse double quotes string
+            '"' => {
+                i += 1; // Skip the starting "
+                (arg, i) = push_till(&chars, i, '"');
+
+                i += 1; // Skip the ending "
+                args.push(arg);
+                continue; // Go back to loop start
+            }
+
+            // Parse double quotes string
+            '\'' => {
+                i += 1; // Skip the starting '
+                (arg, i) = push_till(&chars, i, '\'');
+
+                i += 1; // Skip the ending '
+                args.push(arg);
+                continue; // Go back to loop start
+            }
+
+            // Parse flag
+            _ => {
+                (arg, i) = push_till(&chars, i, ' ');
+                args.push(arg);
+                continue;
+            }
         }
-
-        // Parse double quotes string
-        if chars[i] == '\'' {
-            i += 1; // Skip the starting '
-            (arg, i) = push_till(&chars, i, '\'');
-
-            i += 1; // Skip the ending '
-            args.push(arg);
-            continue; // Go back to loop start
-        }
-
-        // Parse flag
-        (arg, i) = push_till(&chars, i, ' ');
-        args.push(arg);
-        continue;
     }
 
     (command, args)
