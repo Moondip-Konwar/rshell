@@ -1,14 +1,17 @@
+use parser::parse_input;
 use std::env;
 use std::io::{self};
 use std::process::{Command, exit};
 
 mod logging;
+mod parser;
 mod tests;
 
 fn main() {
     loop {
         let input = get_input();
-        process_input(&input);
+        let (cmd, args) = parse_input(&input);
+        process_input(&cmd, args);
     }
 }
 
@@ -29,75 +32,7 @@ fn get_input() -> String {
 
     input
 }
-
-fn push_till(chars: &[char], from: usize, till: char) -> (String, usize) {
-    let mut i: usize = from;
-    let mut substr = String::new();
-    while i < chars.len() && chars[i] != till {
-        substr += chars[i].to_string().as_str();
-        i += 1;
-    }
-
-    (substr, i)
-}
-
-fn parse_input(input: &str) -> (String, Vec<String>) {
-    let mut args: Vec<String> = Vec::new();
-    let chars: Vec<char> = input.trim_start().chars().collect();
-
-    // Parse command
-    let (command, mut i) = push_till(&chars, 0, ' ');
-
-    // Parse args
-    while i < chars.len() {
-        let arg: String;
-
-        match chars[i] {
-            // Skip whitespace
-            ' ' => {
-                i += 1;
-                continue;
-            }
-
-            // Parse double quotes string
-            '"' => {
-                i += 1; // Skip the starting "
-                (arg, i) = push_till(&chars, i, '"');
-
-                i += 1; // Skip the ending "
-                args.push(arg);
-                continue; // Go back to loop start
-            }
-
-            // Parse double quotes string
-            '\'' => {
-                i += 1; // Skip the starting '
-                (arg, i) = push_till(&chars, i, '\'');
-
-                i += 1; // Skip the ending '
-                args.push(arg);
-                continue; // Go back to loop start
-            }
-
-            // Parse flag
-            _ => {
-                (arg, i) = push_till(&chars, i, ' ');
-                args.push(arg);
-                continue;
-            }
-        }
-    }
-
-    (command, args)
-}
-fn process_input(input: &str) {
-    if input.is_empty() {
-        return;
-    }
-
-    let (cmd, args) = parse_input(input);
-    let command = cmd.as_str();
-
+fn process_input(command: &str, args: Vec<String>) {
     match command {
         // Builtins
         "exit" => exit(0),
