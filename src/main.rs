@@ -31,7 +31,6 @@ impl Shell {
         let mut display_str: String = "$: ".to_string(); // Fallback
 
         // Current dir
-        // TODO: Detach into Shell::get_current_dir
         if let Ok(current_dir) = env::current_dir()
             && let Some(path) = current_dir.to_str()
         {
