@@ -4,6 +4,7 @@ use std::env;
 use std::io::Write;
 use std::io::{self, Result, Stdout};
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 use std::process::{Command, Stdio, exit};
 
 mod input;
@@ -12,6 +13,7 @@ mod tests;
 
 struct Shell {
     stdout: Stdout,
+    home_path: PathBuf,
 }
 
 impl Shell {
@@ -20,6 +22,7 @@ impl Shell {
         enable_raw_mode().expect("Failed to enable raw mode.");
         Self {
             stdout: io::stdout(),
+            home_path: env::home_dir().expect("Failed to retrieve home path."),
         }
     }
 

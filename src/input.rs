@@ -58,11 +58,15 @@ impl Shell {
         let mut display_str: String = "$: ".to_string(); // Fallback
 
         // Current dir
-        // TODO: Truncate $HOME to ~
         if let Ok(current_dir) = env::current_dir()
             && let Some(path) = current_dir.to_str()
         {
             display_str = path.to_owned().blue();
+
+            // Replace /home/username with ~
+            if let Some(home_str) = self.home_path.to_str() {
+                display_str = display_str.replace(home_str, "~");
+            }
         }
 
         // Git branch
