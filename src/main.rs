@@ -72,12 +72,10 @@ impl Shell {
                         // Take the stdout/stderr handles
                         let stdout = child.stdout.take().unwrap();
                         let reader = BufReader::new(stdout);
-                        self.print_stdout("\n");
 
                         // Process line by line
                         for line_content in reader.lines().map_while(Result::ok) {
-                            // Manually append the carriage return \r
-                            self.print_stdout(&(line_content + " "));
+                            self.print_stdout(&("\n".to_owned() + &line_content));
                         }
 
                         // Wait for the process to actually exit
