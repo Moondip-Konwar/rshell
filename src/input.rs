@@ -1,4 +1,4 @@
-use std::{env, process::exit};
+use std::env;
 
 use crate::Shell;
 use colored_text::Colorize;
@@ -22,7 +22,7 @@ impl Shell {
             if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
                 // TODO: Currently simply quits the shell
                 // Do something else
-                exit(0);
+                Shell::exit();
             }
 
             // Handle keys

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::parse_input;
 
 fn assert_parse(input: &str, expected_cmd: &str, expected_args: &[&str]) {

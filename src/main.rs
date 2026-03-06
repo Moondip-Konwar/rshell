@@ -1,4 +1,4 @@
-use crossterm::terminal::enable_raw_mode;
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use parser::parse_input;
 use std::env;
 use std::io::Write;
@@ -16,7 +16,7 @@ struct Shell {
 impl Shell {
     // Sets up the shell
     fn new() -> Self {
-        enable_raw_mode().expect("Failed to enable raw mode."); // FIXME: Disable raw mode
+        enable_raw_mode().expect("Failed to enable raw mode.");
         Self {
             stdout: io::stdout(),
         }
@@ -41,7 +41,7 @@ impl Shell {
     fn process_input(&mut self, command: &str, args: Vec<String>) {
         match command {
             // Builtins
-            "exit" => exit(0),
+            "exit" => Shell::exit(),
             "cd" => {
                 if let Some(dir) = args.first() {
                     let _ = env::set_current_dir(dir);
@@ -77,6 +77,11 @@ impl Shell {
             }
             self.process_input(&cmd, args);
         }
+    }
+
+    fn exit() {
+        disable_raw_mode().expect("Failed to disable raw mode.");
+        exit(0);
     }
 }
 
