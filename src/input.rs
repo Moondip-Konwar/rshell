@@ -34,7 +34,10 @@ impl Shell {
                 }
                 KeyCode::Backspace => {
                     input.pop();
-                    // TODO: Implement stdout backspace
+
+                    // \x08: Move one character left
+                    // Move left, write ' ', move left -> Gives a backspace illusion
+                    self.print_stdout("\x08 \x08");
                 }
 
                 KeyCode::Char(c) => {
