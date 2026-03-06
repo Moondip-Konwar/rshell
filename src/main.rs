@@ -108,6 +108,7 @@ impl Shell {
     }
 }
 
+// TODO: Implement piping, enviroment variables, file io (>, >>, <<)
 fn main() {
     let mut shell = Shell::new();
     shell.run();
