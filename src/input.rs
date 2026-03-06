@@ -26,11 +26,13 @@ impl Shell {
 
             // Handle keys
             // TODO: Handle Left, Right, Up, Down, Tab, etc
+            // TODO: Handle Tab autocomplete, Up/Down history, etc
             match key.code {
                 KeyCode::Enter => {
                     input += "\n";
                     break;
                 }
+                // FIXME: Input prompt is backspace erasable
                 KeyCode::Backspace => {
                     input.pop();
 
@@ -56,6 +58,7 @@ impl Shell {
         let mut display_str: String = "$: ".to_string(); // Fallback
 
         // Current dir
+        // TODO: Truncate $HOME to ~
         if let Ok(current_dir) = env::current_dir()
             && let Some(path) = current_dir.to_str()
         {

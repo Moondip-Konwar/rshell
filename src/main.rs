@@ -72,11 +72,9 @@ impl Shell {
                         self.print_stdout("\n");
 
                         // Process line by line
-                        for line in reader.lines() {
-                            if let Ok(line_content) = line {
-                                // Manually append the carriage return \r
-                                self.print_stdout(&(line_content + " "));
-                            }
+                        for line_content in reader.lines().map_while(Result::ok) {
+                            // Manually append the carriage return \r
+                            self.print_stdout(&(line_content + " "));
                         }
 
                         // Wait for the process to actually exit
