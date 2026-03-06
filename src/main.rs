@@ -1,19 +1,31 @@
 use colored_text::Colorize;
+use crossterm::terminal::enable_raw_mode;
 use parser::parse_input;
 use std::env;
-use std::io::{self, Result};
+use std::io::Write;
+use std::io::{self, Result, Stdout};
 use std::process::{Command, exit};
 
-mod logging;
 mod parser;
 mod tests;
 
-struct Shell {}
+struct Shell {
+    stdout: Stdout,
+}
 
 impl Shell {
     // Sets up the shell
     fn new() -> Self {
-        Self {}
+        enable_raw_mode().expect("Failed to enable raw mode."); // FIXME: Disblae raw mode
+        Self {
+            stdout: io::stdout(),
+        }
+    }
+
+    fn print_stdout(&mut self, msg: &str) {
+        let msg = msg.replace("\n", "\r\n");
+        write!(self.stdout, "{msg}").expect("Failed to write to stdout.");
+        self.stdout.flush().expect("Failed to flush to stdout.")
     }
 
     // Fetches and returns the currently active git branch as String
@@ -26,7 +38,7 @@ impl Shell {
 
     // Displays an input prompt `current/path [active branch]❯ `
     // and then fecthes and returns the user input
-    fn get_input() -> String {
+    fn get_input(&mut self) -> String {
         let mut input: String = String::new();
         let mut display_str: String = "$: ".to_string(); // Fallback
 
@@ -34,7 +46,7 @@ impl Shell {
         if let Ok(current_dir) = env::current_dir()
             && let Some(path) = current_dir.to_str()
         {
-            display_str = path.to_owned();
+            display_str = path.to_owned().blue();
         }
 
         // Git branch
@@ -45,7 +57,7 @@ impl Shell {
 
         // Display str
         display_str += "❯ ";
-        logging::input(&display_str);
+        self.print_stdout(&display_str);
 
         // Get input
         io::stdin()
@@ -57,7 +69,7 @@ impl Shell {
     }
 
     // Executes the respective command
-    fn process_input(command: &str, args: Vec<String>) {
+    fn process_input(&mut self, command: &str, args: Vec<String>) {
         match command {
             // Builtins
             "exit" => exit(0),
@@ -68,16 +80,18 @@ impl Shell {
             }
             "pwd" => {
                 if let Ok(current_dir) = env::current_dir() {
-                    println!("{}", current_dir.display());
+                    let msg = format!("{}", current_dir.display());
+                    self.print_stdout(&msg);
                 } else {
-                    println!("Failed to get current dir.")
+                    self.print_stdout("Failed to get current dir.")
                 }
             }
 
             // Executables
             _ => {
                 if let Err(e) = Command::new(command).args(args).status() {
-                    logging::error(format!("{command}: {e}").as_str());
+                    let msg = format!("ERROR: {}", e);
+                    self.print_stdout(&msg);
                 }
             }
         }
@@ -85,16 +99,16 @@ impl Shell {
 
     // Main Fetch-Decode-Execute loop
     // TODO: Add tokenizer and decoder
-    fn run(&self) {
+    fn run(&mut self) {
         loop {
-            let input = Self::get_input();
+            let input = self.get_input();
             let (cmd, args) = parse_input(&input);
-            Self::process_input(&cmd, args);
+            self.process_input(&cmd, args);
         }
     }
 }
 
 fn main() {
-    let shell = Shell::new();
+    let mut shell = Shell::new();
     shell.run();
 }
