@@ -1,4 +1,3 @@
-use colored_text::Colorize;
 use crossterm::terminal::enable_raw_mode;
 use parser::parse_input;
 use std::env;
@@ -6,6 +5,7 @@ use std::io::Write;
 use std::io::{self, Result, Stdout};
 use std::process::{Command, exit};
 
+mod input;
 mod parser;
 mod tests;
 
@@ -16,12 +16,13 @@ struct Shell {
 impl Shell {
     // Sets up the shell
     fn new() -> Self {
-        enable_raw_mode().expect("Failed to enable raw mode."); // FIXME: Disblae raw mode
+        enable_raw_mode().expect("Failed to enable raw mode."); // FIXME: Disable raw mode
         Self {
             stdout: io::stdout(),
         }
     }
 
+    // FIXME: Remove the extra white-line that magically appears
     fn print_stdout(&mut self, msg: &str) {
         let msg = msg.replace("\n", "\r\n");
         write!(self.stdout, "{msg}").expect("Failed to write to stdout.");
@@ -34,38 +35,6 @@ impl Shell {
             .args(["branch", "--show-current"])
             .output()
             .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
-    }
-
-    // Displays an input prompt `current/path [active branch]❯ `
-    // and then fecthes and returns the user input
-    fn get_input(&mut self) -> String {
-        let mut input: String = String::new();
-        let mut display_str: String = "$: ".to_string(); // Fallback
-
-        // Current dir
-        if let Ok(current_dir) = env::current_dir()
-            && let Some(path) = current_dir.to_str()
-        {
-            display_str = path.to_owned().blue();
-        }
-
-        // Git branch
-        if let Ok(current_branch) = Shell::get_current_git_branch() {
-            display_str += " ";
-            display_str += &current_branch.green();
-        }
-
-        // Display str
-        display_str += "❯ ";
-        self.print_stdout(&display_str);
-
-        // Get input
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read line.");
-        input = input.trim().to_string();
-
-        input
     }
 
     // Executes the respective command
@@ -89,8 +58,9 @@ impl Shell {
 
             // Executables
             _ => {
+                self.print_stdout("\n");
                 if let Err(e) = Command::new(command).args(args).status() {
-                    let msg = format!("ERROR: {}", e);
+                    let msg = format!("\nERROR: {}", e);
                     self.print_stdout(&msg);
                 }
             }
@@ -101,7 +71,7 @@ impl Shell {
     // TODO: Add tokenizer and decoder
     fn run(&mut self) {
         loop {
-            let input = self.get_input();
+            let input = self.fetch_input();
             let (cmd, args) = parse_input(&input);
             self.process_input(&cmd, args);
         }
