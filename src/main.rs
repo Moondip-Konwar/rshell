@@ -3,7 +3,8 @@ use parser::parse_input;
 use std::env;
 use std::io::Write;
 use std::io::{self, Result, Stdout};
-use std::process::{Command, exit};
+use std::io::{BufRead, BufReader};
+use std::process::{Command, Stdio, exit};
 
 mod input;
 mod parser;
@@ -22,7 +23,6 @@ impl Shell {
         }
     }
 
-    // FIXME: Remove the extra white-line that magically appears
     fn print_stdout(&mut self, msg: &str) {
         let msg = msg.replace("\n", "\r\n");
         write!(self.stdout, "{msg}").expect("Failed to write to stdout.");
@@ -57,13 +57,34 @@ impl Shell {
             }
 
             // Executables
-            // TODO: Manually pass the program output through Shell::print_stdout
-            // Not doing it causes weird spacing issues on multiline output
             _ => {
-                self.print_stdout("\n");
-                if let Err(e) = Command::new(command).args(args).status() {
-                    let msg = format!("\nERROR {command} {e}");
-                    self.print_stdout(&msg);
+                let child = Command::new(command)
+                    .args(args)
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .spawn();
+
+                match child {
+                    Ok(mut child) => {
+                        // Take the stdout/stderr handles
+                        let stdout = child.stdout.take().unwrap();
+                        let reader = BufReader::new(stdout);
+                        self.print_stdout("\n");
+
+                        // Process line by line
+                        for line in reader.lines() {
+                            if let Ok(line_content) = line {
+                                // Manually append the carriage return \r
+                                self.print_stdout(&(line_content + " "));
+                            }
+                        }
+
+                        // Wait for the process to actually exit
+                        let _ = child.wait();
+                    }
+                    Err(e) => {
+                        self.print_stdout(&format!("\r\nERROR {command}: {e}\r\n"));
+                    }
                 }
             }
         }
