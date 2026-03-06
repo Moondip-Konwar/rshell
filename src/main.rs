@@ -57,10 +57,12 @@ impl Shell {
             }
 
             // Executables
+            // TODO: Manually pass the program output through Shell::print_stdout
+            // Not doing it causes weird spacing issues on multiline output
             _ => {
                 self.print_stdout("\n");
                 if let Err(e) = Command::new(command).args(args).status() {
-                    let msg = format!("\nERROR: {}", e);
+                    let msg = format!("\nERROR {command} {e}");
                     self.print_stdout(&msg);
                 }
             }
@@ -79,6 +81,7 @@ impl Shell {
         }
     }
 
+    // Disables raw mode and terminates the program
     fn exit() {
         disable_raw_mode().expect("Failed to disable raw mode.");
         exit(0);

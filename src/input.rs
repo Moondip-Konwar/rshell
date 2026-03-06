@@ -19,14 +19,13 @@ impl Shell {
             };
 
             // Handle <Ctrl + C>
+            // Currently simply quits the shell
             if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
-                // TODO: Currently simply quits the shell
-                // Do something else
                 Shell::exit();
             }
 
             // Handle keys
-            // TODO: Handle Left, Right, Up, Down, etc
+            // TODO: Handle Left, Right, Up, Down, Tab, etc
             match key.code {
                 KeyCode::Enter => {
                     input += "\n";
