@@ -68,11 +68,13 @@ impl Shell {
     }
 
     // Main Fetch-Decode-Execute loop
-    // TODO: Add tokenizer and decoder
     fn run(&mut self) {
         loop {
             let input = self.fetch_input();
             let (cmd, args) = parse_input(&input);
+            if cmd.is_empty() {
+                continue;
+            }
             self.process_input(&cmd, args);
         }
     }
