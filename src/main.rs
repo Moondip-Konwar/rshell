@@ -1,7 +1,7 @@
 use colored_text::Colorize;
 use parser::parse_input;
 use std::env;
-use std::io::{self};
+use std::io::{self, Result};
 use std::process::{Command, exit};
 
 mod logging;
@@ -17,13 +17,11 @@ impl Shell {
     }
 
     // Fetches and returns the currently active git branch as String
-    // TODO: Change to Result<String>
-    fn get_current_git_branch() -> String {
+    fn get_current_git_branch() -> Result<String> {
         Command::new("git")
             .args(["branch", "--show-current"])
             .output()
             .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
-            .unwrap_or_else(|_| "".to_string())
     }
 
     // Displays an input prompt `current/path [active branch]❯ `
@@ -41,8 +39,7 @@ impl Shell {
         }
 
         // Git branch
-        let current_branch = Shell::get_current_git_branch();
-        if !current_branch.is_empty() {
+        if let Ok(current_branch) = Shell::get_current_git_branch() {
             display_str += " ";
             display_str += &current_branch.green();
         }
